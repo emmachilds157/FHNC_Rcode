@@ -1,0 +1,69 @@
+---
+title: "ForestHerNC_MPAnalysis"
+author: "Emma Childs"
+date: "2024-01-30"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r loading packages, include=FALSE, warning=FALSE, message=FALSE}
+
+rm(list=ls())
+library(ggplot2)
+library(tidyr)
+library(tidyverse)
+library(plm)
+library(GGally)
+library(car)
+library(lmtest)
+library(sandwich)
+library(gt)
+library(ggrepel)
+#installing and loading necessary packages
+#tinytex::install_tinytex() when first starting to be able to knit into spiffy looking PDFs if necessary. 
+
+```
+
+
+```{r working directory, include=FALSE, warning=FALSE, message=FALSE}
+
+#setwd("C:/Users/EmmaC/Documents/Duke_Academics/Fall_2023_Classes/MASTERS_PROJECT/R_Coding/FHNC_Rcode")
+#don't need this code chunk bc I set up a R Project folder that renders this unnecessary. 
+
+```
+
+
+```{r reading in original FHNC survey data, include=FALSE, warning=FALSE, message=FALSE}
+
+FHNC23.df<-read_csv("ORIGINAL_ForestHerNC_2023Implementation_Survey.csv") %>%
+  glimpse()
+
+FHNC23.df
+#reading in CSV files for 2023 ForestHer NC end of year implementation survey. 
+
+``` 
+
+
+```{r initial column cleaning}
+
+FHNC23.clean.df <- FHNC23.df %>% 
+  select(Progress, ResponseId, Q2:Q23)
+#Finish note here - eliminated several superfluous columns with information that was not needed for analysis
+```
+
+
+```{r cleaning for higher completion survey rates, eval=FALSE}
+
+FHNC23.clean.df %>%
+  filter(Progress > 20)
+#Still in progress!!!
+
+```
+
+# Go through each question and figure out what value I want or need from that Q for analysis. (Prioritize the columns I know that I want, and then work backyards.)
+
+#Start recoding Likert cooperative Qs to be numeric - can use recode() or other code Lauren sent....BUT FIRST...make sure I delete first two rows that have funky names but create a metadata file with all the actual questions with correct numbers to reference. 
