@@ -48,9 +48,25 @@ FHNC23.df
 ``` 
 
 
+```{r correcting Qualtrics formatting}
+
+FHNC23.data.df <- read_csv("ORIGINAL_ForestHerNC_2023Implementation_Survey.csv", 
+    col_names = FALSE, skip = 3)
+#reading in only data
+FHNC23.Qs.df <- read_csv("ORIGINAL_ForestHerNC_2023Implementation_Survey.csv", 
+    n_max = 1)
+#reading in Qualtrics questions that get embedded in CSV file that we may want to use later.
+
+my_colnames_vec <- colnames(FHNC23.Qs.df)
+
+colnames(FHNC23.data.df) <- my_colnames_vec
+
+```
+
+
 ```{r initial column cleaning}
 
-FHNC23.clean.df <- FHNC23.df %>% 
+FHNC23.clean.df <- FHNC23.data.df %>% 
   select(Progress, ResponseId, Q2:Q23)
 #Finish note here - eliminated several superfluous columns with information that was not needed for analysis
 ```
@@ -58,9 +74,9 @@ FHNC23.clean.df <- FHNC23.df %>%
 
 ```{r cleaning for higher completion survey rates, eval=FALSE}
 
-FHNC23.clean.df %>%
+FHNC23.clean.df <- FHNC23.clean.df %>%
   filter(Progress > 20)
-#Still in progress!!!
+#Could come back and make this threshold higher depending on what I'm looking for.
 
 ```
 
