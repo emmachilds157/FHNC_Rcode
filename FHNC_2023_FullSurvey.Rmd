@@ -69,7 +69,8 @@ colnames(FHNC23.data.df) <- my_colnames_vec
 
 FHNC23.clean.df <- FHNC23.data.df %>% 
   select(Progress, ResponseId, Q2:Q23)
-#Finish note here - eliminated several superfluous columns with information that was not needed for analysis
+#Eliminated several superfluous columns with information that was not needed for analysis (start time, end time, etc.)
+
 ```
 
 COME BACK AND WORK HERE
@@ -101,8 +102,45 @@ FHNC23.clean.df <- FHNC23.clean.df %>%
 
 #FHNC23.coop.df <- FHNC23.clean.df %>% 
   #select(Progress = 100) %>%
-  #select(Progress, ResponseId, Q5, Q8:Q12, Q16:Q17)
+  #select(Progress, ResponseId, Q5, Q8:Q12, Q16:Q19)
 #Am I selecting all the right columns or do I want to add more?
+
+question_8_text <- FHNC23.Qs.df %>% 
+  select(IPAddress, starts_with("Q8_")) %>% 
+  pivot_longer(-IPAddress, names_to = "question", values_to = "question_text") %>% 
+  mutate(question_short = str_remove(question_text, "Please select your level of interest in each of the following different services that cooperative forest management can offer. - Coordinating with adjacent landowners (on|to) ")) %>% 
+  pull(question_short)
+question_8_text
+  
+my_levels_8 <- c("Not Interested", "Not Sure", "Somewhat Interested", "Very Interested")
+# my_levels_8 <- rev(c("Not Interested", "Not Sure", "Somewhat Interested", "Very Interested"))
+
+# glimpse()
+question_8_df <- FHNC23.clean.df %>% 
+  select(ResponseId, starts_with("Q8_")) %>% 
+  pivot_longer(-ResponseId, names_to = "question", values_to = "response") %>% 
+  count(question, response) # %>% 
+  # mutate(response = factor(response, levels = my_levels_8)) 
+
+question_8_df
+  # filter(Progress == 100) %>%
+  # mutate(question = if_else(question == "Q8_1", "special", question))
+  # mutate(question = case_when(
+  #   question == "Q8_1" ~ "special-thing1",
+  #   question == "Q8_2" ~ "special-thing2",
+  #   TRUE ~ "foo"
+  # ))
+  # drop_na(response)
+  # arrange(response, desc(n))
+
+question_8_df %>% 
+  ggplot(aes(x = question, y = n)) +
+  geom_col(aes(fill = response)) 
+
+# question_8_df %>% 
+#   ggplot(aes(x = question, y = n)) +
+#   geom_col(aes(fill = response)) +
+#   facet_wrap(vars(question))
 
 ```
 
@@ -110,6 +148,13 @@ FHNC23.clean.df <- FHNC23.clean.df %>%
 ```{r recode cooperative Qs to numeric}
 
 #Qs 8-11 (12 also is a coop Q but character response) - need to match USFS coding - add column for 1-5 values?
+```
+
+
+```{r test run visualize Q8}
+
+#barchart/histogram by response type (1-5)...and then could do a further visualization by region?
+
 ```
 
 # Go through each question and figure out what value I want or need from that Q for analysis. (Prioritize the columns I know that I want, and then work backyards.)
