@@ -23,6 +23,7 @@ library(lmtest)
 library(sandwich)
 library(gt)
 library(ggrepel)
+library(tinytex)
 #installing and loading necessary packages
 #tinytex::install_tinytex() when first starting to be able to knit into spiffy looking PDFs if necessary. 
 
@@ -71,15 +72,39 @@ FHNC23.clean.df <- FHNC23.data.df %>%
 #Finish note here - eliminated several superfluous columns with information that was not needed for analysis
 ```
 
+COME BACK AND WORK HERE
 
 ```{r cleaning for higher completion survey rates, eval=FALSE}
 
 FHNC23.clean.df <- FHNC23.clean.df %>%
   filter(Progress > 20)
-#Could come back and make this threshold higher depending on what I'm looking for.
+#Could come back and make this threshold higher depending on what I'm looking for. Do I want to select or filter for the threshold?
 
+```
+
+
+```{r group by mgmt activity}
+
+#See Dakota's pivot table for designations 
+
+```
+
+
+```{r subset cooperative data}
+
+#FHNC23.coop.df <- FHNC23.clean.df %>% 
+  #select(Progress = 100) %>%
+  #select(Progress, ResponseId, Q5, Q8:Q12, Q16:Q17)
+#Am I selecting all the right columns or do I want to add more?
+
+```
+
+
+```{r recode cooperative Qs to numeric}
+
+#Qs 8-11 (12 also is a coop Q but character response) - need to match USFS coding 
 ```
 
 # Go through each question and figure out what value I want or need from that Q for analysis. (Prioritize the columns I know that I want, and then work backyards.)
 
-#Start recoding Likert cooperative Qs to be numeric - can use recode() or other code Lauren sent....BUT FIRST...make sure I delete first two rows that have funky names but create a metadata file with all the actual questions with correct numbers to reference. 
+#Start recoding Likert cooperative Qs to be numeric - can use recode() or other code Lauren sent - use same numeric values that USFS uses that Jesse sent
