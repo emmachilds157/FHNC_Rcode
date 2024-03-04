@@ -90,6 +90,13 @@ FHNC23.clean.df <- FHNC23.clean.df %>%
 ```
 
 
+```{r FHNC analyses}
+
+#consult list of planned analyses
+
+```
+
+
 ```{r subset cooperative data}
 
 #FHNC23.coop.df <- FHNC23.clean.df %>% 
@@ -102,7 +109,7 @@ FHNC23.clean.df <- FHNC23.clean.df %>%
 
 ```{r recode cooperative Qs to numeric}
 
-#Qs 8-11 (12 also is a coop Q but character response) - need to match USFS coding 
+#Qs 8-11 (12 also is a coop Q but character response) - need to match USFS coding - add column for 1-5 values?
 ```
 
 # Go through each question and figure out what value I want or need from that Q for analysis. (Prioritize the columns I know that I want, and then work backyards.)
