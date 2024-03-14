@@ -54,6 +54,7 @@ FHNC23.df
 FHNC23.data.df <- read_csv("ORIGINAL_ForestHerNC_2023Implementation_Survey.csv", 
     col_names = FALSE, skip = 3)
 #reading in only data
+
 FHNC23.Qs.df <- read_csv("ORIGINAL_ForestHerNC_2023Implementation_Survey.csv", 
     n_max = 1)
 #reading in Qualtrics questions that get embedded in CSV file that we may want to use later.
@@ -73,13 +74,13 @@ FHNC23.clean.df <- FHNC23.data.df %>%
 
 ```
 
-COME BACK AND WORK HERE
+COME BACK AND WORK HERE - 3.14.24
 
 ```{r cleaning for higher completion survey rates, eval=FALSE}
 
 FHNC23.clean.df <- FHNC23.clean.df %>%
   filter(Progress > 20)
-#Could come back and make this threshold higher depending on what I'm looking for. Do I want to select or filter for the threshold?
+#Could come back and make this threshold higher depending on what I'm looking for. Do I want to select or filter for the threshold? Should I have a more intensive filter for the subset of coop mgmt data?
 
 ```
 
@@ -100,10 +101,15 @@ FHNC23.clean.df <- FHNC23.clean.df %>%
 
 ```{r subset cooperative data}
 
-#FHNC23.coop.df <- FHNC23.clean.df %>% 
-  #select(Progress = 100) %>%
-  #select(Progress, ResponseId, Q5, Q8:Q12, Q16:Q19)
-#Am I selecting all the right columns or do I want to add more?
+FHNC23.coop.df <- FHNC23.clean.df %>% 
+  select(Progress, ResponseId, Q5, Q8_1:Q12, Q16:Q19) %>%
+  filter(Progress > 80) 
+#Selecting columns of interest, cooperative mgmt specific
+
+```
+
+
+```{r visualizing cooperative data Q8}
 
 question_8_text <- FHNC23.Qs.df %>% 
   select(IPAddress, starts_with("Q8_")) %>% 
@@ -116,7 +122,7 @@ my_levels_8 <- c("Not Interested", "Not Sure", "Somewhat Interested", "Very Inte
 # my_levels_8 <- rev(c("Not Interested", "Not Sure", "Somewhat Interested", "Very Interested"))
 
 # glimpse()
-question_8_df <- FHNC23.clean.df %>% 
+question_8_df <- FHNC23.coop.df %>% 
   select(ResponseId, starts_with("Q8_")) %>% 
   pivot_longer(-ResponseId, names_to = "question", values_to = "response") %>% 
   count(question, response) # %>% 
@@ -141,6 +147,86 @@ question_8_df %>%
 #   ggplot(aes(x = question, y = n)) +
 #   geom_col(aes(fill = response)) +
 #   facet_wrap(vars(question))
+
+#Visualizing question 8 - coordinating services with other landowners - still need to make the visualization more nuanced. 
+```
+
+
+```{r visualizing cooperative data Q9}
+
+question_9_text <- FHNC23.Qs.df %>% 
+  select(IPAddress, starts_with("Q9_")) %>% 
+  pivot_longer(-IPAddress, names_to = "question", values_to = "question_text") %>% 
+  mutate(question_short = str_remove(question_text, "Please select the level of importance or unimportance for each of the following different benefits that cooperative forest management can offer. - ")) %>% 
+  pull(question_short)
+question_9_text
+  
+my_levels_9 <- c("Not Important", "Not Sure", "Somewhat Important", "Very Important")
+# my_levels_9 <- rev(c("Not Important", "Not Sure", "Somewhat Important", "Very Inmportant"))
+
+# glimpse()
+question_9_df <- FHNC23.coop.df %>% 
+  select(ResponseId, starts_with("Q9_")) %>% 
+  pivot_longer(-ResponseId, names_to = "question", values_to = "response") %>% 
+  count(question, response) # %>% 
+  # mutate(response = factor(response, levels = my_levels_9)) 
+
+question_9_df
+  # filter(Progress == 100) %>%
+  # mutate(question = if_else(question == "Q9_1", "special", question))
+  # mutate(question = case_when(
+  #   question == "Q9_1" ~ "special-thing1",
+  #   question == "Q9_2" ~ "special-thing2",
+  #   TRUE ~ "foo"
+  # ))
+  # drop_na(response)
+  # arrange(response, desc(n))
+
+question_9_df %>% 
+  ggplot(aes(x = question, y = n)) +
+  geom_col(aes(fill = response)) 
+
+#Visualizing question 9 - potential different benefits that coordinated services could offer. Need to figure out what to do with the text/other option that is throwing my visualization out of order/making it confusing. 
+
+```
+
+
+```{r visualizing cooperative data Q10}
+
+question_10_text <- FHNC23.Qs.df %>% 
+  select(IPAddress, starts_with("Q10_")) %>% 
+  pivot_longer(-IPAddress, names_to = "question", values_to = "question_text") %>% 
+  mutate(question_short = str_remove(question_text, "Please select the level of significance or insignificance for each of the following different barriers to engaging in cooperative forest management for you and your land. - ")) %>% 
+  pull(question_short)
+question_10_text
+  
+my_levels_10 <- c("Not Significant", "Not Sure", "Somewhat Significant", "Very Significant")
+# my_levels_10 <- rev(c("Not Significant", "Not Sure", "Somewhat Significant", "Very Significant"))
+
+# glimpse()
+question_10_df <- FHNC23.coop.df %>% 
+  select(ResponseId, starts_with("Q10_")) %>% 
+  pivot_longer(-ResponseId, names_to = "question", values_to = "response") %>% 
+  count(question, response) # %>% 
+  # mutate(response = factor(response, levels = my_levels_9)) 
+
+question_10_df
+  # filter(Progress == 100) %>%
+  # mutate(question = if_else(question == "Q10_1", "special", question))
+  # mutate(question = case_when(
+  #   question == "Q10_1" ~ "special-thing1",
+  #   question == "Q10_2" ~ "special-thing2",
+  #   TRUE ~ "foo"
+  # ))
+  # drop_na(response)
+  # arrange(response, desc(n))
+
+question_10_df %>% 
+  ggplot(aes(x = question, y = n)) +
+  geom_col(aes(fill = response))
+
+#Visualizing question 10 - the level of significance or insignificance for each of the following different barriers to engaging in cooperative forest management for you and your land.
+
 
 ```
 
