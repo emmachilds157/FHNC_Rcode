@@ -87,9 +87,25 @@ FHNC23.clean.df <- FHNC23.clean.df %>%
 
 ```{r group by mgmt activity}
 
-#See Dakota's pivot table for designations 
+#Direct vs indirect management - theme 2
+
+#See Dakota's pivot table for further designations 
 
 ```
+
+
+```{r group by topical theme}
+
+#theme 1:
+#education
+#business management
+#wildlife
+#invasive species
+#recreation
+#timber/trees
+#fire
+```
+
 
 
 ```{r FHNC analyses}
@@ -231,15 +247,61 @@ question_10_df %>%
 ```
 
 
+```{r visualizing cooperative data Q11}
+
+question_11_text <- FHNC23.Qs.df %>% 
+  select(IPAddress, starts_with("Q11_")) %>% 
+  pivot_longer(-IPAddress, names_to = "question", values_to = "question_text") %>% 
+  mutate(question_short = str_remove(question_text, "To what degree would each of the following allow you to engage in cooperative forest management? - ")) %>% 
+  pull(question_short)
+question_11_text
+  
+my_levels_11 <- c("Not at all", "Not Sure", "Somewhat", "Greatly")
+# my_levels_11 <- rev(c("Not at all", "Not Sure", "Somewhat", "Greatly"))
+
+# glimpse()
+question_11_df <- FHNC23.coop.df %>% 
+  select(ResponseId, starts_with("Q11_")) %>% 
+  pivot_longer(-ResponseId, names_to = "question", values_to = "response") %>% 
+  count(question, response) # %>% 
+  # mutate(response = factor(response, levels = my_levels_11)) 
+
+question_11_df
+  # filter(Progress == 100) %>%
+  # mutate(question = if_else(question == "Q11_1", "special", question))
+  # mutate(question = case_when(
+  #   question == "Q11_1" ~ "special-thing1",
+  #   question == "Q11_2" ~ "special-thing2",
+  #   TRUE ~ "foo"
+  # ))
+  # drop_na(response)
+  # arrange(response, desc(n))
+
+question_11_df %>% 
+  ggplot(aes(x = question, y = n)) +
+  geom_col(aes(fill = response)) 
+
+# question_11_df %>% 
+#   ggplot(aes(x = question, y = n)) +
+#   geom_col(aes(fill = response)) +
+#   facet_wrap(vars(question))
+
+#Visualizing question 11 - To what degree would each of the following allow you to engage in cooperative forest management?
+
+#Something is WRONG here - I want to get rid of 11_7_TEXT bc it is messing up the visualization...how??? Tried adding "ends_with("Q11_7")" on line after "starts_with" but that didn't work. 
+
+```
+
+
 ```{r recode cooperative Qs to numeric}
 
 #Qs 8-11 (12 also is a coop Q but character response) - need to match USFS coding - add column for 1-5 values?
 ```
 
 
-```{r test run visualize Q8}
+```{r test run analyses}
 
-#barchart/histogram by response type (1-5)...and then could do a further visualization by region?
+#barchart/histogram by response type (1-5)?...and then could do a further visualization by region? Or could run more statistical analyses. 
 
 ```
 
