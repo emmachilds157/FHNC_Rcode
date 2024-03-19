@@ -1,0 +1,23 @@
+---
+title: "Untitled"
+format: html
+editor: source
+---
+
+```{r}
+foo_df <- FHNC23.coop.df %>% 
+  select(ResponseId, starts_with("Q8_"), Q18) %>% 
+  pivot_longer(-c(ResponseId, Q18), names_to = "question", values_to = "response") %>% 
+  count(question, Q18, response) %>% 
+  drop_na(Q18)
+
+foo_df
+```
+
+```{r}
+foo_df %>% 
+  # filter(Q18 == "20 acres or less") %>% 
+  ggplot(aes(x = question, y = n)) +
+  geom_col(aes(fill = response)) +
+  facet_wrap(vars(Q18)) #, scales = "free_y")
+```

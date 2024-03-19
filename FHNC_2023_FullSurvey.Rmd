@@ -74,7 +74,6 @@ FHNC23.clean.df <- FHNC23.data.df %>%
 
 ```
 
-COME BACK AND WORK HERE - 3.14.24
 
 ```{r cleaning for higher completion survey rates, eval=FALSE}
 
@@ -82,6 +81,17 @@ FHNC23.clean.df <- FHNC23.clean.df %>%
   filter(Progress > 20)
 #Could come back and make this threshold higher depending on what I'm looking for. Do I want to select or filter for the threshold? Should I have a more intensive filter for the subset of coop mgmt data?
 
+```
+
+
+```{r subset Q6 into separate df}
+
+```
+
+
+```{r import pivot table csv}
+
+#once imported, can do a left join with management activity and themes (see below code) - EMMA, come back here and clarify - this is from meeting with John Little on 3/19/2024
 ```
 
 
@@ -104,13 +114,20 @@ FHNC23.clean.df <- FHNC23.clean.df %>%
 #recreation
 #timber/trees
 #fire
+
 ```
 
+
+```{r group by average parcel size}
+
+#Filter by region and by parcel size to assess who owns land where, and how much
+
+```
 
 
 ```{r FHNC analyses}
 
-#consult list of planned analyses
+#consult list of planned analyses - what else do I need to include?
 
 ```
 
@@ -183,6 +200,8 @@ my_levels_9 <- c("Not Important", "Not Sure", "Somewhat Important", "Very Import
 # glimpse()
 question_9_df <- FHNC23.coop.df %>% 
   select(ResponseId, starts_with("Q9_")) %>% 
+  select(!Q9_11_TEXT) %>% 
+  select(!Q9_11) %>% 
   pivot_longer(-ResponseId, names_to = "question", values_to = "response") %>% 
   count(question, response) # %>% 
   # mutate(response = factor(response, levels = my_levels_9)) 
@@ -202,7 +221,7 @@ question_9_df %>%
   ggplot(aes(x = question, y = n)) +
   geom_col(aes(fill = response)) 
 
-#Visualizing question 9 - potential different benefits that coordinated services could offer. Need to figure out what to do with the text/other option that is throwing my visualization out of order/making it confusing. 
+#Visualizing question 9 - potential different benefits that coordinated services could offer. 
 
 ```
 
@@ -221,10 +240,13 @@ my_levels_10 <- c("Not Significant", "Not Sure", "Somewhat Significant", "Very S
 
 # glimpse()
 question_10_df <- FHNC23.coop.df %>% 
-  select(ResponseId, starts_with("Q10_")) %>% 
+  select(ResponseId, starts_with("Q10_")) %>%
+  select(!Q10_9_TEXT) %>% 
+  select(!Q10_9) %>% 
+
   pivot_longer(-ResponseId, names_to = "question", values_to = "response") %>% 
   count(question, response) # %>% 
-  # mutate(response = factor(response, levels = my_levels_9)) 
+  # mutate(response = factor(response, levels = my_levels_10)) 
 
 question_10_df
   # filter(Progress == 100) %>%
@@ -262,6 +284,8 @@ my_levels_11 <- c("Not at all", "Not Sure", "Somewhat", "Greatly")
 # glimpse()
 question_11_df <- FHNC23.coop.df %>% 
   select(ResponseId, starts_with("Q11_")) %>% 
+  select(!Q11_7_TEXT) %>% 
+  select(!Q11_7) %>% 
   pivot_longer(-ResponseId, names_to = "question", values_to = "response") %>% 
   count(question, response) # %>% 
   # mutate(response = factor(response, levels = my_levels_11)) 
@@ -287,8 +311,6 @@ question_11_df %>%
 #   facet_wrap(vars(question))
 
 #Visualizing question 11 - To what degree would each of the following allow you to engage in cooperative forest management?
-
-#Something is WRONG here - I want to get rid of 11_7_TEXT bc it is messing up the visualization...how??? Tried adding "ends_with("Q11_7")" on line after "starts_with" but that didn't work. 
 
 ```
 
