@@ -26,15 +26,15 @@ library(ggrepel)
 library(tinytex)
 #installing and loading necessary packages
 #tinytex::install_tinytex() when first starting to be able to knit into spiffy looking PDFs if necessary. 
-
 ```
 
+
+##Reading in original data and cleaning
 
 ```{r working directory, include=FALSE, warning=FALSE, message=FALSE}
 
 #setwd("C:/Users/EmmaC/Documents/Duke_Academics/Fall_2023_Classes/MASTERS_PROJECT/R_Coding/FHNC_Rcode")
 #don't need this code chunk bc I set up a R Project folder that renders this unnecessary. 
-
 ```
 
 
@@ -45,7 +45,6 @@ FHNC23.df<-read_csv("ORIGINAL_ForestHerNC_2023Implementation_Survey.csv") %>%
 
 FHNC23.df
 #reading in CSV files for 2023 ForestHer NC end of year implementation survey. 
-
 ``` 
 
 
@@ -62,7 +61,6 @@ FHNC23.Qs.df <- read_csv("ORIGINAL_ForestHerNC_2023Implementation_Survey.csv",
 my_colnames_vec <- colnames(FHNC23.Qs.df)
 
 colnames(FHNC23.data.df) <- my_colnames_vec
-
 ```
 
 
@@ -70,8 +68,7 @@ colnames(FHNC23.data.df) <- my_colnames_vec
 
 FHNC23.clean.df <- FHNC23.data.df %>% 
   select(Progress, ResponseId, Q2:Q23)
-#Eliminated several superfluous columns with information that was not needed for analysis (start time, end time, etc.)
-
+#Eliminated several superfluous columns with information that was not needed for analysis (start time, end time, etc.) to make everything cleaner. Be sure to keep the Response ID so you have an identifier for each response. 
 ```
 
 
@@ -79,13 +76,68 @@ FHNC23.clean.df <- FHNC23.data.df %>%
 
 FHNC23.clean.df <- FHNC23.clean.df %>%
   filter(Progress > 20)
-#Could come back and make this threshold higher depending on what I'm looking for. Do I want to select or filter for the threshold? Should I have a more intensive filter for the subset of coop mgmt data?
-
+#Could come back and make this threshold higher depending on what I'm looking for. Do I want to select or filter for the threshold? Then I can just filter out NAs???
 ```
 
+#Subsetting main FHNC data to anlalyze on-the-ground management activities related to Q6.
 
 ```{r subset Q6 into separate df}
 
+q6_df <- FHNC23.clean.df %>% 
+  select(Progress, ResponseId, starts_with("Q6")) %>% 
+  filter(Progress > 20)  %>% 
+  janitor::clean_names()
+
+#Creating a separate dataframe just for Q6 so I can analyze management actions. Filtering for responses more than 20% at the moment, but might change this. 
+```
+
+
+```{r glimpse Q6}
+
+q6_df %>% 
+  glimpse()
+#glimpsing just to make sure I have all the data I want in this new subsetted dataframe. 
+```
+
+
+```{r}
+
+library(readxl)
+#Import theme data from Excel file from FHNC that has pivot table and all Q6 questions. First, do one-time install for the {readsxl} package to import the data; then load the {readxl} package
+```
+
+
+```{r reading in pivot excel table}
+
+pivot_df <- read_excel("ImplementationSurveyAggregation_fromDakota_Feb2024.xlsx", sheet = "PivotTable")
+pivot_df %>%  
+  janitor::clean_names() %>% 
+  drop_na(row_labels)
+#Now import the excel file. I'll import both the pivot table from the first workbook sheet, and the 2021 data from the 2028 workbook sheet in the next code chunk. The Q6 questions are the same from years 2021-2023, so I can just read in the one 2021 sheet to keep things clean. 
+```
+
+
+```{r reading in excel 2021 sheet}
+
+theme_2021 <- read_excel("ImplementationSurveyAggregation_fromDakota_Feb2024.xlsx", 
+    sheet = "2021") %>%  
+  janitor::clean_names() 
+theme_2021 
+#reading in 2021 sheet with all the specific forestry activities listed.
+```
+
+
+```{r}
+theme_2021 |> 
+  count(theme_1, sort = TRUE)
+#Verify Theme 1 from raw data
+```
+
+
+```{r}
+theme_2021 |> 
+  count(theme_2, sort = TRUE)
+#Verify theme 2 from raw data
 ```
 
 
@@ -131,14 +183,14 @@ FHNC23.clean.df <- FHNC23.clean.df %>%
 
 ```
 
+##Cooperative management data analysis
 
 ```{r subset cooperative data}
 
 FHNC23.coop.df <- FHNC23.clean.df %>% 
   select(Progress, ResponseId, Q5, Q8_1:Q12, Q16:Q19) %>%
   filter(Progress > 80) 
-#Selecting columns of interest, cooperative mgmt specific
-
+#Selecting columns of interest, cooperative mgmt specific questions
 ```
 
 
@@ -182,6 +234,56 @@ question_8_df %>%
 #   facet_wrap(vars(question))
 
 #Visualizing question 8 - coordinating services with other landowners - still need to make the visualization more nuanced. 
+```
+
+
+##Q8 facet wrap to analyze different variables responding to Q8 - acreage owned, region of the state, etc. 
+
+```{r Q8 and acreage visualization}
+
+Q8_acreage_df <- FHNC23.coop.df %>% 
+  select(ResponseId, starts_with("Q8_"), Q18) %>% 
+  pivot_longer(-c(ResponseId, Q18), names_to = "question", values_to = "response") %>% 
+  count(question, Q18, response) %>% 
+  drop_na(Q18)
+
+Q8_acreage_df
+#pivoted longer here to include Q18 alongside Q8 inquiries. Q18 is how much acreage landowners have, starting from 1-20 acres and increasing from there. We dropped NAs from Q18 because those are folks who do not own land. This does leave out folks who might manage land, but it was the best option for this analysis. 
+```
+
+
+```{r Q8 acreage facet wrap}
+
+Q8_acreage_df %>% 
+  #filter(Q18 == "20 acres or less") %>% 
+  ggplot(aes(x = question, y = n)) +
+  geom_col(aes(fill = response)) +
+  facet_wrap(vars(Q18)) #, scales = "free_y")
+#Facet wrapped here so I Can see all the different acreage categories that FHNC asks about - 20 acres or less, 21-50 acres, 51-200 acres, or more than 200 acres. I've commented out the filter function which would allow me to look at just one acreage category at a time. My geom_col has the color of the bars filled in by response which are generated from the Likert scale. I've also commented out scales = "free_y" because that allows the y-axis to be unique for each plot, which is pretty confusing and conflates data provided by just a few participants. 
+```
+
+
+```{r Q8 and region visualization}
+
+Q8_region_df <- FHNC23.coop.df %>% 
+  select(ResponseId, starts_with("Q8_"), Q16) %>% 
+  pivot_longer(-c(ResponseId, Q16), names_to = "question", values_to = "response") %>% 
+  count(question, Q16, response) 
+  #drop_na(Q16)
+
+Q8_region_df
+#COME BACK AND FINISH THIS ONE, EMMA - plus the facet wrap for visualizing...do I want to drop the NAs or not? Currently it is commented out...
+```
+
+
+```{r Q8 region facet wrap}
+
+Q8_region_df %>% 
+  filter(Q16 == "Coastal", "Mountains", "Piedmont") %>% 
+  ggplot(aes(x = question, y = n)) +
+  geom_col(aes(fill = response)) +
+  facet_wrap(vars(Q16)) #, scales = "free_y")}
+#Error here - why??? Trying to filter for just the three main regions...
 ```
 
 
