@@ -3,6 +3,8 @@ title: "ForestHerNC_MPAnalysis"
 author: "Emma Childs"
 date: "2024-01-30"
 output: html_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -277,14 +279,34 @@ Q8_region_df
 ```
 
 
+```{r COLORS}
+
+EmmaColors = c("#993399", "#E2E6ED", "#FFD960", "#E89923")
+#Google "Duke Branding Colors" to get these, but I can do custom colors later. They need to be in the order I will use them. The purple is too bright, and Lauren and I discussed taking the "not sures" out entirely so that we can be working from a 0 line and see all the positive vs negative responses. https://brand.duke.edu/colors/
+```
+
+
+```{r levels to order region responses}
+
+#levels(Q8_region_df$response) <- c("Somewhat Interested", "Not Sure", "Not Interested", "Very Interested")
+#This wasn't working, so we didn't use it but I'm saving it for now. 
+```
+
+
 ```{r Q8 region facet wrap}
 
 Q8_region_df %>% 
-  filter(Q16 == "Coastal", "Mountains", "Piedmont") %>% 
-  ggplot(aes(x = question, y = n)) +
-  geom_col(aes(fill = response)) +
-  facet_wrap(vars(Q16)) #, scales = "free_y")}
-#Error here - why??? Trying to filter for just the three main regions...
+  filter(Q16 == "Coastal" | Q16 == "Mountains" | Q16 == "Piedmont") %>%
+  group_by(Q16, question) %>% 
+  mutate(percent = n/sum(n)) %>% 
+  ggplot(aes(x = question, y = percent)) +
+  geom_col(aes(fill = response), position = position_stack(reverse = TRUE)) +
+  facet_wrap(vars(Q16)) +
+  scale_y_continuous(labels = scales::percent, expand = expansion(mult = c(0,0.1))) +
+  theme_minimal() +
+  coord_flip() +
+  scale_fill_manual(values = EmmaColors)
+#I used filter and group_by to sort for all the responses that fall into either coastal, piedmont or mountains. This eliminates the responses that chose more than one or marked that they owned land outside of NC. The position = position_stack line of code addresses the order of responses in my visualization so that the colors line out the way I want them to. Scale_y_continuous is to change percent to 0-100 scale and remove the weird spaces between top and bottom of ggplot. The theme could be taken out or changed to be more custom. The coord_flip turns all the plots to be horizontal instead of vertical and the scale_fill_manual uses the colors I selected in the code chunk above. 
 ```
 
 
@@ -325,7 +347,6 @@ question_9_df %>%
   geom_col(aes(fill = response)) 
 
 #Visualizing question 9 - potential different benefits that coordinated services could offer. 
-
 ```
 
 
@@ -367,8 +388,6 @@ question_10_df %>%
   geom_col(aes(fill = response))
 
 #Visualizing question 10 - the level of significance or insignificance for each of the following different barriers to engaging in cooperative forest management for you and your land.
-
-
 ```
 
 
@@ -414,7 +433,6 @@ question_11_df %>%
 #   facet_wrap(vars(question))
 
 #Visualizing question 11 - To what degree would each of the following allow you to engage in cooperative forest management?
-
 ```
 
 
