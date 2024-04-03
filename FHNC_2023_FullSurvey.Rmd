@@ -223,6 +223,7 @@ question_8_df
   # ))
   # drop_na(response)
   # arrange(response, desc(n))
+#Code we were just playing around with, but do not need at the moment - 4/3/24
 
 question_8_df %>% 
   ggplot(aes(x = question, y = n)) +
@@ -302,7 +303,7 @@ my_levels_9 <- c("Not Important", "Not Sure", "Somewhat Important", "Very Import
 # glimpse()
 question_9_df <- FHNC23.coop.df %>% 
   select(ResponseId, starts_with("Q9_")) %>% 
-  select(!Q9_11_TEXT) %>% 
+  select(!Q9_11_TEXT) %>% #using the bang ! here to signal that I don't want to include Q9_11_TEXT in my visualiz/results
   select(!Q9_11) %>% 
   pivot_longer(-ResponseId, names_to = "question", values_to = "response") %>% 
   count(question, response) # %>% 
