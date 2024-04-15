@@ -208,7 +208,7 @@ question_8_text
 my_levels_8 <- c("Not Interested", "Not Sure", "Somewhat Interested", "Very Interested")
 # my_levels_8 <- rev(c("Not Interested", "Not Sure", "Somewhat Interested", "Very Interested"))
 
-# glimpse()
+#glimpse()
 question_8_df <- FHNC23.coop.df %>% 
   select(ResponseId, starts_with("Q8_")) %>% 
   pivot_longer(-ResponseId, names_to = "question", values_to = "response") %>% 
@@ -236,7 +236,7 @@ question_8_df %>%
 #   geom_col(aes(fill = response)) +
 #   facet_wrap(vars(question))
 
-#Visualizing question 8 - coordinating services with other landowners - still need to make the visualization more nuanced. 
+#Visualizing question 8 - coordinating services with other landowners.
 ```
 
 
@@ -244,12 +244,13 @@ question_8_df %>%
 
 ```{r Q8 COLORS}
 
-EmmaColors = c("#993399", "#E2E6ED", "#FFD960", "#E89923")
+EmmaColorswithgray = c("#993399", "#E2E6ED", "#FFD960", "#E89923")
+EmmaColors = c("#993399", "#FFD960", "#E89923")
 #Google "Duke Branding Colors" to get these, but I can do custom colors later. They need to be in the order I will use them. The purple is too bright, and Lauren and I discussed taking the "not sures" out entirely so that we can be working from a 0 line and see all the positive vs negative responses. https://brand.duke.edu/colors/
 ```
 
 
-```{r Q8 and acreage visualization}
+```{r Q8 acreage visualization}
 
 Q8_acreage_df <- FHNC23.coop.df %>% 
   select(ResponseId, starts_with("Q8_"), Q18) %>% 
@@ -275,6 +276,35 @@ Q8_acreage_df %>%
 
 ```{r Q8 acreage facet wrap}
 
+Q8_plot = Q8_acreage_df %>% 
+  filter(Q18 == "20 acres or less" | Q18 == "21-50 acres" | Q18 == "51-200 acres" | Q18 == "200 or more acres") %>%
+  group_by(Q18, question) %>% 
+  mutate(percent = n/sum(n)) %>% 
+  filter(!response == "Not Sure") #filtered out not sure response but can add back in
+
+ggplot() +
+  geom_col(data=Q8_plot %>% 
+           filter(response == "Somewhat Interested" | response == "Very Interested"),
+           aes(fill = response, x = reorder(question, percent), y = percent), 
+           position =    position_stack(reverse = TRUE)) + 
+  
+    geom_col(data=Q8_plot %>% 
+           filter(response == "Not Interested"),
+           aes(fill = response, x = question, y = percent * -1), 
+           position =    position_stack(reverse = TRUE)) + 
+  
+  facet_wrap(vars(Q18)) +
+  scale_y_continuous(labels = scales::percent, expand = expansion(mult = c(0,0.1))) +
+  theme_minimal() +
+  coord_flip() +
+  scale_fill_manual(values = EmmaColors)
+
+#I used filter and group_by to sort for all the responses that fall into the 4 respective acreage categories (do I want to eventually divide this into below 100 or 200 acres or above??? like I will do with NWOS?). The position = position_stack line of code addresses the order of responses in my visualization so that the colors line out the way I want them to. Scale_y_continuous is to change percent to 0-100 scale and remove the weird spaces between top and bottom of ggplot. The theme could be taken out or changed to be more custom. The coord_flip turns all the plots to be horizontal instead of vertical and the scale_fill_manual uses the colors I selected in the code chunk above. 
+```
+
+
+```{r 8 acreage original code, eval=FALSE}
+
 Q8_acreage_df %>% 
   filter(Q18 == "20 acres or less" | Q18 == "21-50 acres" | Q18 == "51-200 acres" | Q18 == "200 or more acres") %>%
   group_by(Q18, question) %>% 
@@ -286,12 +316,12 @@ Q8_acreage_df %>%
   theme_minimal() +
   coord_flip() +
   scale_fill_manual(values = EmmaColors)
+#Emma - this is the original code for Q8 acreage and the code chunk above is altered for sorting/visualization purposes - 4/15/2024
 
-#I used filter and group_by to sort for all the responses that fall into the 4 respective acreage categories (do I want to eventually divide this into below 100 or 200 acres or above??? like I will do with NWOS?). The position = position_stack line of code addresses the order of responses in my visualization so that the colors line out the way I want them to. Scale_y_continuous is to change percent to 0-100 scale and remove the weird spaces between top and bottom of ggplot. The theme could be taken out or changed to be more custom. The coord_flip turns all the plots to be horizontal instead of vertical and the scale_fill_manual uses the colors I selected in the code chunk above. 
 ```
 
 
-```{r Q8 and region visualization}
+```{r Q8 region visualization}
 
 Q8_region_df <- FHNC23.coop.df %>% 
   select(ResponseId, starts_with("Q8_"), Q16) %>% 
