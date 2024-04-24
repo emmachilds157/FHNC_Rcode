@@ -274,7 +274,7 @@ Q8_acreage_df %>%
 ```
 
 
-```{r Q8 acreage facet wrap}
+```{r Q8 fancy acreage facet wrap}
 
 Q8_plot = Q8_acreage_df %>% 
   filter(Q18 == "20 acres or less" | Q18 == "21-50 acres" | Q18 == "51-200 acres" | Q18 == "200 or more acres") %>%
@@ -402,6 +402,58 @@ question_9_df %>%
   geom_col(aes(fill = response)) 
 
 #Visualizing question 9 - potential different benefits that coordinated services could offer. 
+```
+
+
+```{r Q9 acreage visualization}
+
+Q9_acreage_df <- FHNC23.coop.df %>% 
+  select(ResponseId, starts_with("Q9_"), Q18) %>% 
+  pivot_longer(-c(ResponseId, Q18), names_to = "question", values_to = "response") %>% 
+  count(question, Q18, response) %>% 
+  drop_na(Q18)
+
+Q9_acreage_df
+
+```
+
+
+```{r Q9 acreage facet wrap}
+
+Q9_acreage_df %>% 
+  #filter(Q18 == "20 acres or less") %>% 
+  ggplot(aes(x = question, y = n)) +
+  geom_col(aes(fill = response)) +
+  facet_wrap(vars(Q18)) #, scales = "free_y")
+
+```
+
+
+```{r Q9 fancy acreage facet wrap}
+
+#FNISH EDITING
+Q8_plot = Q8_acreage_df %>% 
+  filter(Q18 == "20 acres or less" | Q18 == "21-50 acres" | Q18 == "51-200 acres" | Q18 == "200 or more acres") %>%
+  group_by(Q18, question) %>% 
+  mutate(percent = n/sum(n)) %>% 
+  filter(!response == "Not Sure") #filtered out not sure response but can add back in
+
+ggplot() +
+  geom_col(data=Q8_plot %>% 
+           filter(response == "Somewhat Interested" | response == "Very Interested"),
+           aes(fill = response, x = reorder(question, percent), y = percent), 
+           position =    position_stack(reverse = TRUE)) + 
+  
+    geom_col(data=Q8_plot %>% 
+           filter(response == "Not Interested"),
+           aes(fill = response, x = question, y = percent * -1), 
+           position =    position_stack(reverse = TRUE)) + 
+  
+  facet_wrap(vars(Q18)) +
+  scale_y_continuous(labels = scales::percent, expand = expansion(mult = c(0,0.1))) +
+  theme_minimal() +
+  coord_flip() +
+  scale_fill_manual(values = EmmaColors)
 ```
 
 
