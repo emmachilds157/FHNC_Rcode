@@ -81,7 +81,7 @@ FHNC23.clean.df <- FHNC23.clean.df %>%
 #Could come back and make this threshold higher depending on what I'm looking for. Do I want to select or filter for the threshold? Then I can just filter out NAs???
 ```
 
-#Subsetting main FHNC data to anlalyze on-the-ground management activities related to Q6.
+#Subsetting main FHNC data to analyze on-the-ground management activities related to Q6.
 
 ```{r subset Q6 into separate df}
 
@@ -196,6 +196,19 @@ FHNC23.coop.df <- FHNC23.clean.df %>%
 ```
 
 
+```{r binning acreage differently}
+
+FHNC23.coop.df$AcreageBins = NA
+
+FHNC23.coop.df$AcreageBins[FHNC23.coop.df$Q18=="20 acres or less"] <- "Under 50 acres"
+FHNC23.coop.df$AcreageBins[FHNC23.coop.df$Q18=="21-50 acres"] <- "Under 50 acres"
+FHNC23.coop.df$AcreageBins[FHNC23.coop.df$Q18=="51-200 acres"] <- "Over 50 acres"
+FHNC23.coop.df$AcreageBins[FHNC23.coop.df$Q18=="200 or more acres"] <- "Over 50 acres"
+#Rebinned the acreage by adding a new column so that I can simply group by under or over 50 acres.
+
+```
+
+
 ```{r visualizing cooperative data Q8}
 
 question_8_text <- FHNC23.Qs.df %>% 
@@ -214,18 +227,6 @@ question_8_df <- FHNC23.coop.df %>%
   pivot_longer(-ResponseId, names_to = "question", values_to = "response") %>% 
   count(question, response) # %>% 
   # mutate(response = factor(response, levels = my_levels_8)) 
-
-question_8_df
-  # filter(Progress == 100) %>%
-  # mutate(question = if_else(question == "Q8_1", "special", question))
-  # mutate(question = case_when(
-  #   question == "Q8_1" ~ "special-thing1",
-  #   question == "Q8_2" ~ "special-thing2",
-  #   TRUE ~ "foo"
-  # ))
-  # drop_na(response)
-  # arrange(response, desc(n))
-#Code we were just playing around with, but do not need at the moment - 4/3/24
 
 question_8_df %>% 
   ggplot(aes(x = question, y = n)) +
@@ -250,59 +251,6 @@ EmmaColors = c("#993399", "#FFD960", "#E89923")
 ```
 
 
-```{r Q8 acreage visualization}
-
-Q8_acreage_df <- FHNC23.coop.df %>% 
-  select(ResponseId, starts_with("Q8_"), Q18) %>% 
-  pivot_longer(-c(ResponseId, Q18), names_to = "question", values_to = "response") %>% 
-  count(question, Q18, response) %>% 
-  drop_na(Q18)
-
-Q8_acreage_df
-#pivoted longer here to include Q18 alongside Q8 inquiries. Q18 is how much acreage landowners have, starting from 1-20 acres and increasing from there. We dropped NAs from Q18 because those are folks who do not own land. This does leave out folks who might manage land, but it was the best option for this analysis. 
-```
-
-
-```{r Q8 acreage facet wrap}
-
-Q8_acreage_df %>% 
-  #filter(Q18 == "20 acres or less") %>% 
-  ggplot(aes(x = question, y = n)) +
-  geom_col(aes(fill = response)) +
-  facet_wrap(vars(Q18)) #, scales = "free_y")
-#Facet wrapped here so I Can see all the different acreage categories that FHNC asks about - 20 acres or less, 21-50 acres, 51-200 acres, or more than 200 acres. I've commented out the filter function which would allow me to look at just one acreage category at a time. My geom_col has the color of the bars filled in by response which are generated from the Likert scale. I've also commented out scales = "free_y" because that allows the y-axis to be unique for each plot, which is pretty confusing and conflates data provided by just a few participants. 
-```
-
-
-```{r Q8 fancy acreage facet wrap}
-
-Q8_plot = Q8_acreage_df %>% 
-  filter(Q18 == "20 acres or less" | Q18 == "21-50 acres" | Q18 == "51-200 acres" | Q18 == "200 or more acres") %>%
-  group_by(Q18, question) %>% 
-  mutate(percent = n/sum(n)) %>% 
-  filter(!response == "Not Sure") #filtered out not sure response but can add back in
-
-ggplot() +
-  geom_col(data=Q8_plot %>% 
-           filter(response == "Somewhat Interested" | response == "Very Interested"),
-           aes(fill = response, x = reorder(question, percent), y = percent), 
-           position =    position_stack(reverse = TRUE)) + 
-  
-    geom_col(data=Q8_plot %>% 
-           filter(response == "Not Interested"),
-           aes(fill = response, x = question, y = percent * -1), 
-           position =    position_stack(reverse = TRUE)) + 
-  
-  facet_wrap(vars(Q18)) +
-  scale_y_continuous(labels = scales::percent, expand = expansion(mult = c(0,0.1))) +
-  theme_minimal() +
-  coord_flip() +
-  scale_fill_manual(values = EmmaColors)
-
-#I used filter and group_by to sort for all the responses that fall into the 4 respective acreage categories (do I want to eventually divide this into below 100 or 200 acres or above??? like I will do with NWOS?). The position = position_stack line of code addresses the order of responses in my visualization so that the colors line out the way I want them to. Scale_y_continuous is to change percent to 0-100 scale and remove the weird spaces between top and bottom of ggplot. The theme could be taken out or changed to be more custom. The coord_flip turns all the plots to be horizontal instead of vertical and the scale_fill_manual uses the colors I selected in the code chunk above. 
-```
-
-
 ```{r 8 acreage original code, eval=FALSE}
 
 Q8_acreage_df %>% 
@@ -315,9 +263,63 @@ Q8_acreage_df %>%
   scale_y_continuous(labels = scales::percent, expand = expansion(mult = c(0,0.1))) +
   theme_minimal() +
   coord_flip() +
-  scale_fill_manual(values = EmmaColors)
-#Emma - this is the original code for Q8 acreage and the code chunk above is altered for sorting/visualization purposes - 4/15/2024
+  scale_fill_manual(values = EmmaColorswithgray)
+#Emma - this is the original code for Q8 acreage (SAVE THIS) and the code chunk above is altered for sorting/visualization purposes - 4/15/2024
 
+```
+
+
+```{r Q8 acreage visualization}
+
+Q8_acreage_df <- FHNC23.coop.df %>% 
+  select(ResponseId, starts_with("Q8_"), AcreageBins) %>% 
+  pivot_longer(-c(ResponseId, AcreageBins), names_to = "question", values_to = "response") %>% 
+  count(question, AcreageBins, response) %>% 
+  drop_na(AcreageBins)
+
+Q8_acreage_df
+#pivoted longer here to include Q18 alongside Q8 inquiries. Q18 is how much acreage landowners have, starting from 1-20 acres and increasing from there. We dropped NAs from Q18 because those are folks who do not own land. This does leave out folks who might manage land, but it was the best option for this analysis. 
+```
+
+
+```{r Q8 acreage facet wrap}
+
+Q8_acreage_df %>% 
+  #filter(Q18 == "20 acres or less") %>% 
+  ggplot(aes(x = question, y = n)) +
+  geom_col(aes(fill = response)) +
+  facet_wrap(vars(AcreageBins)) #, scales = "free_y")
+#Facet wrapped here so I can see all the different acreage categories that FHNC asks about - 20 acres or less, 21-50 acres, 51-200 acres, or more than 200 acres. I've commented out the filter function which would allow me to look at just one acreage category at a time. My geom_col has the color of the bars filled in by response which are generated from the Likert scale. I've also commented out scales = "free_y" because that allows the y-axis to be unique for each plot, which is pretty confusing and conflates data provided by just a few participants. 
+```
+
+
+```{r Q8 fancy acreage facet wrap}
+
+Q8_plot = Q8_acreage_df %>% 
+  #filter(Q18 == "20 acres or less" | Q18 == "21-50 acres" | Q18 == "51-200 acres" | Q18 == "200 or more acres") %>%
+  group_by(AcreageBins, question) %>% 
+  mutate(percent = n/sum(n)) 
+
+Q8_plot$AcreageBins = factor(Q8_plot$AcreageBins, levels=c("Under 50 acres", "Over 50 acres"))
+
+ggplot() +
+  geom_col(data=Q8_plot %>% 
+           filter(response == "Somewhat Interested" | response == "Very Interested"),
+           aes(fill = response, x = reorder(question, percent), y = percent), 
+           position =    position_stack(reverse = TRUE)) + 
+  
+    geom_col(data=Q8_plot %>% 
+           filter(response == "Not Sure" | response == "Not Interested"),
+           aes(fill = response, x = question, y = percent * -1), 
+           position =    position_stack(reverse = FALSE)) + 
+  
+  facet_wrap(~AcreageBins, ncol=1) +
+  scale_y_continuous(labels = scales::percent, expand = expansion(mult = c(0,0.1))) +
+  theme_minimal() +
+  coord_flip() +
+  scale_fill_manual(values = EmmaColorswithgray)
+
+#I used filter and group_by to sort for all the responses that fall into the 2 respective acreage categories. The position = position_stack line of code addresses the order of responses in my visualization so that the colors line out the way I want them to. Scale_y_continuous is to change percent to 0-100 scale and remove the weird spaces between top and bottom of ggplot. The theme could be taken out or changed to be more custom. The coord_flip turns all the plots to be horizontal instead of vertical and the scale_fill_manual uses the colors I selected in the code chunk above. 
 ```
 
 
